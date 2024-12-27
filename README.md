@@ -1,5 +1,5 @@
 # knockpy-gui
-Knockpy GUI
+Knockpy GUI - This is just a demo project!
 
 # Install
 
@@ -21,3 +21,13 @@ then visit: `http://127.0.0.1:8000/`
 
 user: `admin` 
 pass: `admin`
+
+# Screenshot
+
+![image](https://github.com/user-attachments/assets/1eeaa80d-541d-43bf-a9e4-636a7cb0872f)
+
+![image](https://github.com/user-attachments/assets/3d75e286-c4a0-43bd-b138-f044e60bb08c)
+
+# Todo
+
+development in progress...
