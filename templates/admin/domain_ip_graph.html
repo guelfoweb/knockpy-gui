@@ -1,0 +1,118 @@
+<script>
+    // Calcola dinamicamente la larghezza e l'altezza in base alla finestra del browser
+    const width = window.innerWidth;  // Larghezza della finestra del browser
+    const height = window.innerHeight; // Altezza della finestra del browser
+
+    const svg = d3.select("#domain-ip-graph")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    const zoom = d3.zoom()
+        .scaleExtent([0.5, 5]) // Limita lo zoom tra 0.5x e 5x
+        .on("zoom", zoomed);
+
+    const g = svg.append("g"); // Gruppo per i contenuti zoomabili
+
+    svg.call(zoom); // Applica il comportamento di zoom sull'SVG
+
+    function zoomed(event) {
+        g.attr("transform", event.transform);
+    }
+
+    const nodes = {{ nodes|safe }};
+    const links = {{ links|safe }};
+
+    const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+        .force("charge", d3.forceManyBody().strength(-300))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    // Disegna i link
+    const link = g.append("g")
+        .selectAll("line")
+        .data(links)
+        .enter()
+        .append("line")
+        .attr("stroke-width", 2)
+        .attr("stroke", "#999");
+
+    // Disegna i nodi
+    const node = g.append("g")
+        .selectAll("circle")
+        .data(nodes)
+        .enter()
+        .append("circle")
+        .attr("r", 10)
+        .attr("fill", d => d.group === 1 ? "#1f77b4" : "#ff7f0e")
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+    // Etichette dei nodi
+    const label = g.append("g")
+        .selectAll("text")
+        .data(nodes)
+        .enter()
+        .append("text")
+        .attr("x", 12)
+        .attr("y", ".31em")
+        .text(d => d.id);
+
+    simulation.on("tick", () => {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+
+        label
+            .attr("x", d => d.x + 15)
+            .attr("y", d => d.y);
+    });
+
+    // Inizializza il grafico in modalità "adatta alla finestra"
+    simulation.on("end", () => {
+        // Ottieni i limiti dei nodi
+        const bounds = g.node().getBBox(); // Ottieni i limiti del contenuto
+        const fullWidth = bounds.width;
+        const fullHeight = bounds.height;
+
+        // Calcola scala e traslazione per adattare il grafico
+        const scale = Math.min(width / fullWidth, height / fullHeight) * 0.9; // Scala con margine del 90%
+        const translateX = (width - fullWidth * scale) / 2 - bounds.x * scale;
+        const translateY = (height - fullHeight * scale) / 2 - bounds.y * scale;
+
+        // Applica la trasformazione iniziale al gruppo grafico
+        g.attr("transform", `translate(${translateX}, ${translateY}) scale(${scale})`);
+    });
+
+    // Funzione per ridimensionare l'SVG quando la finestra cambia dimensione
+    window.onresize = function() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        svg.attr("width", width).attr("height", height);
+    };
+
+    function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+</script>
