@@ -1,0 +1,6 @@
+venv/
+venv3/
+*.pyc
+gui/__pycache__/
+gui/migrations/__pycache__/
+knockpygui/__pycache__/
